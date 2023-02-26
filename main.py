@@ -86,13 +86,12 @@ l=3
 theta=0.5
 cluster_list_heads=[]
 number_of_nodes=62
+dataset="dolphins.csv" # The name of dataset
 node_list=[None]*number_of_nodes
-members_list=[[] for _ in range(number_of_nodes)]
+members_list=[[i] for i in range(number_of_nodes)]
 
 def detachbility_index(x,memberslist,nodelist):
     members=memberslist[x]
-    if x not in members:
-        members.append(x)
     intra=0
     inter=0
     for member in members:
@@ -142,7 +141,7 @@ def merge(i,z):
                 ndlst[node].C_Inter-=1
                 ndlst[node].C_Intra+=1
     memlst[i]=list(set(z_lst) | set(i_lst))
-    memlst[z]=[]
+    memlst[z]=[z]
     clslst.remove(z)
     return ndlst,memlst,clslst
     
@@ -150,7 +149,26 @@ def merge(i,z):
 def detachind(i,z):
     ndlist,memlist,clslst=merge(i,z)
     return detachbility_index(i,memlist,ndlist)
-dataset="dolphins.csv" # The name of dataset
+
+def get_communties(Cmax):
+    arr=[]
+    for node in Cmax:
+        for head in cluster_list_heads:
+            if node in members_list[head]:
+                arr.append(head)
+    return arr
+
+def get_community_neighbors(Cz):
+    mem = members_list[Cz]
+    commneighlst=[]
+    for node in mem:
+        neighhbors = g[node]
+        for neighhbor in neighhbors:
+            if neighhbor not in mem:
+                commneighlst.append(neighhbor)
+    return commneighlst
+            
+
 g=nx.Graph()
 with open(dataset, mode ='r')as file:
     csvFile = csv.DictReader(file)
@@ -167,8 +185,9 @@ with open(dataset, mode ='r')as file:
         if(W_temp==W):
             for Cz in cluster_list_heads:
                 if(detachbility_index(Cz, members_list, node_list)<theta):
-                    NE=members_list[Cz] #line 13
-                    CS=get_elements_with_max_frequency(NE) #line 14,15,16
+                    NE=get_community_neighbors(Cz) #line 13
+                    Cmax=get_elements_with_max_frequency(NE) #line 14,15,16
+                    CS=get_communties(Cmax) #line 17
                     MID= float('-inf')
                     for head in CS:
                         if head!=Cz:
@@ -180,8 +199,6 @@ with open(dataset, mode ='r')as file:
             W_temp=0
 
 
-print(members_list)
-print(cluster_list_heads)
 nodes_colors = [0]*number_of_nodes
 i=1
 for head in cluster_list_heads:
