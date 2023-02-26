@@ -170,7 +170,7 @@ with open(dataset, mode ='r')as file:
                     NE=members_list[Cz] #line 13
                     CS=get_elements_with_max_frequency(NE) #line 14,15,16
                     MID= float('-inf')
-                    for head in cluster_list_heads:
+                    for head in CS:
                         if head!=Cz:
                             TID=detachind(head,Cz)-detachbility_index(head,members_list,node_list)
                             if(TID>MID):
